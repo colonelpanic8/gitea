@@ -1,0 +1,48 @@
+kind: pipeline
+name: lint
+
+steps:
+- name: format
+  image: golang
+  environment:
+    GOPROXY: https://goproxy.cn
+  commands:
+    - go version
+    - go install mvdan.cc/gofumpt@latest
+    - "[ $(gofumpt -extra -l . | wc -l) -eq 0 ] || { echo 'code not formated'; exit 21; }"
+#- name: lint
+#  image: golangci/golangci-lint
+#  environment:
+#    GOPROXY: https://goproxy.cn
+#  commands:
+#    - golangci-lint run --timeout 5m
+
+---
+kind: pipeline
+name: test/go1-13
+
+steps:
+- name: test
+  image: golang:1.13
+  environment:
+    GOPROXY: https://goproxy.cn
+  commands:
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic .
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./ledis/
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./nodb/
+#  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+---
+kind: pipeline
+name: test/go1-18
+
+steps:
+- name: test
+  image: golang:1.18
+  environment:
+    GOPROXY: https://goproxy.cn
+  commands:
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic .
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./ledis/
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./nodb/
+#  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
